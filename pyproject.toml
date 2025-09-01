@@ -1,0 +1,14 @@
+[project]
+name = "tegame"
+version = "0.0.1"
+authors = [
+  { name="Ivano"},
+]
+description = "a tegame project"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
