@@ -1,1 +1,1 @@
-#from . import tegame
+from . import tegame
