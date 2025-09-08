@@ -3,6 +3,82 @@ from random import shuffle
 from sys import exit
 from copy import deepcopy
 
+class tegame:
+
+    def __init__(self):
+
+        self.n_players = 2
+        self.n_draw = 2
+        self.thresh_pile = 10
+        self.tresh_nonmandatory = 2
+
+        card_per_player = {2:7, 3:6, 4:6, 5:6}
+        self.n_inhand = card_per_player[self.n_players]
+
+        self.original_deck = [int(i) for i in np.arange(2,100)]
+        shuffle(self.original_deck)
+        self.original_piles = [[1],[1],[100],[100]]
+
+        self.refresh()
+
+    def refresh(self):
+               
+        self.deck = deepcopy(self.original_deck)
+        self.piles = deepcopy(self.original_piles)
+        self.restart()
+        
+    def restart(self):
+
+        deck = self.deck
+        N = self.n_players
+        m = self.n_inhand
+
+        self.hands = np.asarray(deck[:N*m]).reshape([N,m]).tolist()
+        deck = deck[N*m:]
+        
+        self.deck = deck
+        self.deck_empty = False
+
+    def print_stat(self):
+
+        self.print_stat_deck()
+        self.print_stat_piles()
+        self.print_stat_hands()
+
+    def print_stat_deck(self):
+        print("\nCurrent deck is")
+        step = 25
+        for i in range(0, len(self.deck),step):
+            line = self.deck[i:i+step]
+            print(" ".join(f"{num:3n}" for num in line))
+                  
+    def print_stat_piles(self):
+        print("\nCurrent piles are")
+        for pile in self.piles:
+            print(" ".join(f"{num:3n}" for num in pile))
+
+    def print_stat_hands(self):
+        print("\nCurrent player hands are")
+        for hand in self.hands:
+            print(" ".join(f"{num:3n}" for num in hand))
+
+
+    def run_game(self):
+    #Convention: decreasing piles start with 100 but for sake of ease
+    # we consider them at -100 so that they are increasing
+    # in this way we simply change the sign for cards in hands
+    
+        N = self.n_players
+
+        while True:
+            for player_idx in range(N):
+                self.play_turn(player_idx)
+                if self.hands==[[]*N]: break
+
+        print('You Won!')
+
+
+
 # Play a full turn
 # Play all the reasonable cards in hand
 def play_turn(player_idx):
@@ -146,47 +222,11 @@ def end_game_and_recap():
     raise ValueError("Game Over")
 
 #Prepare a new game
-def new_game():
-    global original_deck, original_piles, N, n, m
-    global danger_thresh, one_more_tresh, players, card_per_turn
-    
-    original_deck = [int(i) for i in np.arange(2,99)]
-    shuffle(original_deck)
-    original_piles = [[1],[1],[100],[100]]
-    
-    card_per_player = {2:7, 3:6, 4:6, 5:6}
-    players = 2
-    card_per_turn = 2
-    danger_thresh = 10
-    one_more_tresh = 2
 
-    N = players
-    n = 2 #card_per_turn
-    m = card_per_player[players]
 
-def run_game():
-    #Convention: decreasing piles start with 100 but for sake of ease
-    # we consider them at -100 so that they are increasing
-    # in this way we simply change the sign for cards in hands
-    global deck, piles, hands, deck_empty
-    
-    deck = deepcopy(original_deck)
-    piles = deepcopy(original_piles)
-    hands = np.asarray(deck[:N*m]).reshape([N,m]).tolist()
-    deck = deck[N*m:]
-    
-    deck_empty = False
-    n = 2 #card_per_turn
-    
-    while True:
-        for player_idx in range(N):
-            play_turn(player_idx)
-            if hands==[[]*N]: break
-    print('Win')
-
-def start_game():
-    new_game()
-    run_game()
 
 if __name__ == "__main__":
-    start_game()
+    
+    mygame = tegame.tegame()
+    mygame.restart()
+    mygame.run()
