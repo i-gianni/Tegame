@@ -53,13 +53,18 @@ class tegame:
                   
     def print_stat_piles(self):
         print("\nCurrent piles are")
-        for pile in self.piles:
-            print(" ".join(f"{num:3n}" for num in pile))
+        for i,pile in enumerate(self.piles):
+            print(f"{i}: " + " ".join(f"{num:3n}" for num in pile))
 
     def print_stat_hands(self):
         print("\nCurrent player hands are")
-        for hand in self.hands:
-            print(" ".join(f"{num:3n}" for num in hand))
+        for i,hand in enumerate(self.hands):
+            print(f"Player {i}:" + " ".join(f"{num:3n}" for num in hand))
+
+    def print_proposal(self,player,card,pile,delta):
+        print(f"\nPlayer {player} would like to play card {self.hands[player][card]}")
+        print(f"On pile {pile}")
+        print(f"Dealing {delta} damage")
 
     def run_game(self):
     #Convention: decreasing piles start with 100 but for sake of ease
@@ -69,7 +74,7 @@ class tegame:
         N = self.n_players
         game_over = False
 
-        while game_over != True:
+        while not game_over:
             for active_player in range(N):
                 game_over, game_status = self.play_turn(active_player)
 
@@ -83,9 +88,15 @@ class tegame:
 
         delta,ind = self.scan_hand_(player,discards=discards,mandatory_move=mandatory_move)
         if ind==[]:
+
             return delta,[None,None]
+        
         elif len(ind)==2:
+
+            if self.verbose:
+                self.print_proposal(player,ind[0],ind[1],delta)            
             return delta,ind
+        
         else:
             raise ValueError("Output of scan_hand not recognized")
 
@@ -124,11 +135,6 @@ class tegame:
             self.game_over = True
             self.game_status = 1
 
-        if self.verbose:
-            print(f"\nPlayer {player} would like to play card {hand[ind[0]]}")
-            print(f"On pile {ind[1]}")
-            print(f"Dealing {delta} damage")
-
         return delta, ind
     
     # Modellize the interaction with other players
@@ -137,7 +143,10 @@ class tegame:
     # the list of piles is returned
     def interaction(self,active_player):
         #things to implement: give higher priority to closest players
-        print("\nInteraction")
+        if self.verbose:
+            print("\n------------")
+            print("Interaction")
+            print("------------")
 
         players = [i for i in range(self.n_players) if i is not active_player]
         pile_idx_list = []
@@ -145,26 +154,23 @@ class tegame:
         for player in players:
             delta,(card_idx,pile_idx)=self.scan_hand(player,mandatory_move=False)
             pile_idx_list.append(pile_idx)
-            if card_idx is not None: 
-                print(f"Player {player} would like to play:")
-                print(f"Card {self.hands[player][card_idx]} on pile {pile_idx} with delta {delta}")
 
         return list(set(pile_idx_list))
 
     # Physical action of placing one card onto a pile
     def place_card(self,player,card,pile):
-        print(f"Placing card: {self.hands[player][card]} on pile {pile}")
+        print(f"\nDECISION:\nPlayer {player} places card: {self.hands[player][card]} on pile {pile}")
         self.piles[pile].append(self.hands[player][card]) #add played card to the piles
-        self.hands.pop(card) #remove card played from the hand
+        self.hands[player].pop(card) #remove card played from the hand
 
     # Pick one card from the deck.
     # Also check if the deck is empty
     def draw_one(self,player):
 
-        if self.deck == [] and not deck_empty:
+        if self.deck == [] and not self.deck_empty:
             self.n_mandatory_moves -= 1 ### Don't know if this is always correct
             print("\n------------------------------- Deck is over, last few rounds. Hold on! -------------------------------\n")
-            deck_empty = True
+            self.deck_empty = True
 
         if self.deck == []:
             return
@@ -175,55 +181,71 @@ class tegame:
     # Main action in a player turn
     # perform several actions to undestand which card to play
     def play_card(self,player,mandatory_move=True):
+
         delta_1,(card_idx1,pile_idx1)=self.scan_hand(player,mandatory_move=mandatory_move)
         if delta_1 == -10:
-            hand = place_card(player,card_idx1,pile_idx1)
+            self.place_card(player,card_idx1,pile_idx1)
         elif not mandatory_move and delta_1 > self.thresh_nonmandatory:
             return
         else:
             dont_pile_idx_list = self.interaction(player)
             
             if not pile_idx1 in dont_pile_idx_list: #case 1: the pile of interest can be played
-                hand = place_card(hand,card_idx1,pile_idx1)
+                if self.verbose: print("\nNo conflict detected!\n.........")
+                self.place_card(player,card_idx1,pile_idx1)
 
             elif sorted(dont_pile_idx_list) == [0,1,2,3] and not mandatory_move: #case 2: all piles are taken, so fuck it
-                hand = place_card(hand,card_idx1,pile_idx1)
+                if self.verbose: print("\nNo other choice..\n.........")
+                self.place_card(player,card_idx1,pile_idx1)
 
             else: #case 3: check other piles
+                if self.verbose: print("\nChecking second choice\n.........")
                 delta_2, (card_idx2,pile_idx2) = self.scan_hand(player,discards=dont_pile_idx_list,mandatory_move=mandatory_move)
                 if delta_2 - delta_1 > self.thresh_secondchoice or delta_2 == 100:
-                    hand = place_card(hand,card_idx1,pile_idx1)
+                    self.place_card(player,card_idx1,pile_idx1)
                 else:
                     if delta_2 > self.thresh_nonmandatory and not mandatory_move:
                         return 
                     else: 
-                        hand = place_card(hand,card_idx2,pile_idx2)
+                        self.place_card(player,card_idx2,pile_idx2)
 
 
     # Play a full turn
     # Play all the reasonable cards in hand
     def play_turn(self,player):
               
+        if is_empty_lists(self.hands):
+            return True, 0
+        
         print("\n=======================")
         print(f"New turn for player {player}")
         print("=======================")
         for _ in range(self.n_mandatory_moves):
-            hand=self.play_card(player)
+            print(f"\nMandatory move #{_}")
+            self.play_card(player)
 
         n_played = self.n_mandatory_moves
         while True:
+            print(f"\nOne more move?")
 
             hand_old = self.hands[player].copy()
             self.play_card(player,mandatory_move=False)
 
-            if self.hands[player] == hand_old: break
+            if self.hands[player] == hand_old:
+                print("\nNo other meaningfull moves, turn is ending")
+                print(f"#played cards: {n_played}")
+                break
             n_played = n_played + 1
             
-        print(f"\nn. played cards: {n_played}")
         for _ in range(n_played):
             self.draw_one(player)
 
+        self.print_stat_piles()
+        return False, 0
 
+
+def is_empty_lists(lst):
+    return all(isinstance(x, list) and not x for x in lst) if lst else True
 
 if __name__ == "__main__":
     
