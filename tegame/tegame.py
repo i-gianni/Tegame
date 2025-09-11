@@ -28,6 +28,8 @@ class tegame:
 
         self.deck = deepcopy(self.original_deck)
         self.piles = deepcopy(self.original_piles)
+        self.n_mandatory_moves = 2 # this must be set here but it sucks like this, fix it somehow
+
 
         deck = self.deck
         N = self.n_players
@@ -57,7 +59,7 @@ class tegame:
             print(f"{i}: " + " ".join(f"{num:3n}" for num in pile))
 
     def print_stat_hands(self):
-        print("\nCurrent player hands are")
+        print("\nCurrent players hands are")
         for i,hand in enumerate(self.hands):
             print(f"Player {i}:" + " ".join(f"{num:3n}" for num in hand))
 
@@ -71,14 +73,20 @@ class tegame:
     # we consider them at -100 so that they are increasing
     # in this way we simply change the sign for cards in hands
     
+        print("###################")
+        print(" STARTING NEW GAME")
+        print("###################")
+
         N = self.n_players
-        game_over = False
+        self.game_over = False
+        self.game_status = 0
 
-        while not game_over:
+
+        while not self.game_over:
             for active_player in range(N):
-                game_over, game_status = self.play_turn(active_player)
+                self.play_turn(active_player)
 
-        if game_status == 0:
+        if self.game_status == 0:
             print('You Won!')
         else:
             print('Game Over')
@@ -89,6 +97,8 @@ class tegame:
         delta,ind = self.scan_hand_(player,discards=discards,mandatory_move=mandatory_move)
         if ind==[]:
 
+            if self.game_over and self.game_status != 0:
+                exit("Game Over")
             return delta,[None,None]
         
         elif len(ind)==2:
@@ -159,7 +169,7 @@ class tegame:
 
     # Physical action of placing one card onto a pile
     def place_card(self,player,card,pile):
-        print(f"\nDECISION:\nPlayer {player} places card: {self.hands[player][card]} on pile {pile}")
+        if self.verbose: print(f"\nDECISION:\nPlayer {player} places card: {self.hands[player][card]} on pile {pile}")
         self.piles[pile].append(self.hands[player][card]) #add played card to the piles
         self.hands[player].pop(card) #remove card played from the hand
 
@@ -215,25 +225,31 @@ class tegame:
     def play_turn(self,player):
               
         if is_empty_lists(self.hands):
-            return True, 0
+            self.game_over = True
+            self.game_status = 0
+            return
         
         print("\n=======================")
         print(f"New turn for player {player}")
         print("=======================")
+        if self.verbose:
+            self.print_stat_hands()
+
         for _ in range(self.n_mandatory_moves):
-            print(f"\nMandatory move #{_}")
+            if self.verbose: print(f"\nMandatory move #{_}")
             self.play_card(player)
 
         n_played = self.n_mandatory_moves
         while True:
-            print(f"\nOne more move?")
+            if self.verbose: print(f"\nOne more move?")
 
             hand_old = self.hands[player].copy()
             self.play_card(player,mandatory_move=False)
 
             if self.hands[player] == hand_old:
-                print("\nNo other meaningfull moves, turn is ending")
-                print(f"#played cards: {n_played}")
+                if self.verbose:
+                    print("\nNo other meaningfull moves, turn is ending")
+                    print(f"#played cards: {n_played}")
                 break
             n_played = n_played + 1
             
@@ -241,7 +257,7 @@ class tegame:
             self.draw_one(player)
 
         self.print_stat_piles()
-        return False, 0
+        return
 
 
 def is_empty_lists(lst):
