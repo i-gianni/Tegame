@@ -5,11 +5,13 @@ from copy import deepcopy
 
 class tegame:
 
-    def __init__(self,verbose=False):
+    def __init__(self,players=2,verbose=False):
 
-        self.n_players = 2
+        self.n_players = players
+
         self.n_draw = 2
         self.n_mandatory_moves = 2
+
         card_per_player = {2:7, 3:6, 4:6, 5:6}
         self.n_inhand = card_per_player[self.n_players]
 
@@ -18,7 +20,7 @@ class tegame:
 
         self.verbose = verbose
 
-        self.original_deck = [int(i) for i in np.arange(2,100)]
+        self.original_deck = [i for i in range(2,100)]
         shuffle(self.original_deck)
         self.original_piles = [[1],[1],[100],[100]]
 
@@ -30,14 +32,17 @@ class tegame:
         self.piles = deepcopy(self.original_piles)
         self.n_mandatory_moves = 2 # this must be set here but it sucks like this, fix it somehow
 
-
-        deck = self.deck
         N = self.n_players
         m = self.n_inhand
-        self.hands = np.asarray(deck[:N*m]).reshape([N,m]).tolist()
-        deck = deck[N*m:]
+
+        self.hands=[]
+        for _ in range(N):
+            self.hands.append([i for i in self.deck[:m]])
+            self.deck = self.deck[m:]
+
+        #self.hands = np.asarray(deck[:N*m]).reshape([N,m]).tolist()
+        #deck = deck[N*m:]
         
-        self.deck = deck
         self.deck_empty = False
 
     def print_stat(self):
