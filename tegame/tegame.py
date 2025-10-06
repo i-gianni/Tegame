@@ -1,4 +1,3 @@
-import numpy as np
 from random import shuffle
 from sys import exit
 from copy import deepcopy
@@ -174,7 +173,7 @@ class tegame:
 
     # Physical action of placing one card onto a pile
     def place_card(self,player,card,pile):
-        if self.verbose: print(f"\nDECISION:\nPlayer {player} places card: {self.hands[player][card]} on pile {pile}")
+        print(f"\nDECISION:\nPlayer {player} places card: {self.hands[player][card]} on pile {pile}")
         self.piles[pile].append(self.hands[player][card]) #add played card to the piles
         self.hands[player].pop(card) #remove card played from the hand
 
@@ -183,11 +182,11 @@ class tegame:
     def draw_one(self,player):
 
         if self.deck == [] and not self.deck_empty:
+            self.deck_empty = True
             self.n_mandatory_moves -= 1 ### Don't know if this is always correct
             print("\n------------------------------- Deck is over, last few rounds. Hold on! -------------------------------\n")
-            self.deck_empty = True
 
-        if self.deck == []:
+        if self.deck_empty:
             return
         
         self.hands[player].append(self.deck[0])
@@ -237,8 +236,7 @@ class tegame:
         print("\n=======================")
         print(f"New turn for player {player}")
         print("=======================")
-        if self.verbose:
-            self.print_stat_hands()
+        self.print_stat_hands()
 
         for _ in range(self.n_mandatory_moves):
             if self.verbose: print(f"\nMandatory move #{_}")
