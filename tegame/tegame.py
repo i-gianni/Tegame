@@ -266,6 +266,12 @@ class tegame:
 def is_empty_lists(lst):
     return all(isinstance(x, list) and not x for x in lst) if lst else True
 
+def is_list_of(a,b):
+    ls = []
+    for l in a:
+        ls.append(all(item in l for item in b))
+    return any(ls)
+
 if __name__ == "__main__":
     
     mygame = tegame.tegame()
