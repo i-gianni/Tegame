@@ -196,6 +196,7 @@ class tegame:
     # perform several actions to undestand which card to play
     def play_card(self,player,mandatory_move=True):
 
+        
         delta_1,(card_idx1,pile_idx1)=self.scan_hand(player,mandatory_move=mandatory_move)
         if delta_1 == -10:
             self.place_card(player,card_idx1,pile_idx1)
