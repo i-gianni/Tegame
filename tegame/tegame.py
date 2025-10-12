@@ -72,6 +72,9 @@ class tegame:
         print(f"On pile {pile}")
         print(f"Dealing {delta} damage")
 
+
+
+
     def run_game(self):
     #Convention: decreasing piles start with 100 but for sake of ease
     # we consider them at -100 so that they are increasing
@@ -84,7 +87,6 @@ class tegame:
         N = self.n_players
         self.game_over = False
         self.game_status = 0
-
 
         while not self.game_over:
             for active_player in range(N):
@@ -113,6 +115,9 @@ class tegame:
         
         else:
             raise ValueError("Output of scan_hand not recognized")
+
+
+
 
     # Look for the best card to play from current player's hand onto the field
     # return the card, the pile and the damage done by the possible move
@@ -150,7 +155,31 @@ class tegame:
             self.game_status = 1
 
         return delta, ind
-    
+
+    def scan_combo(self,player):
+        
+        hand = self.hands[player]
+        hand.sort()
+
+        combo_list=[]
+        for i, card_i in enumerate(hand):
+            combo = []
+            combo.append(i)
+            old = card_i
+            if card_i in combo_list: continue
+            for j, card_j in enumerate(hand):
+                if card_j - old == 10:
+                    combo.append(j)
+                    old = card_j
+            if is_empty_lists(combo_list):
+                if (len(combo) > 1) : combo_list.append(combo)
+            else:
+                if (len(combo) > 1) and not is_list_of(combo_list,combo) : combo_list.append(combo)
+        #print(f"\nCombo list {combo_list}")
+        #return combo_list
+
+
+
     # Modellize the interaction with other players
     # the hand that are passed are of the inactive players
     # they look for the pile onto which they would like to play
@@ -170,6 +199,7 @@ class tegame:
             pile_idx_list.append(pile_idx)
 
         return list(set(pile_idx_list))
+
 
     # Physical action of placing one card onto a pile
     def place_card(self,player,card,pile):
@@ -198,11 +228,28 @@ class tegame:
 
         
         delta_1,(card_idx1,pile_idx1)=self.scan_hand(player,mandatory_move=mandatory_move)
+
+        combo_list = self.scan_combo(player)
+
+        # if the playable card is part of a combo, play the cards in reverse order
+        for combo in combo_list:
+            if card_idx1 in combo:
+                print(f"\nCCCCCCCCCCOMBO: {" ".join(combo)}")
+                self.place_card(player,combo[-1],pile_idx1)
+                break
+
         if delta_1 == -10:
+            # if the card is a -10 play it right away
+            print(f"\nmmmh -10, mmh saucy")
             self.place_card(player,card_idx1,pile_idx1)
+
         elif not mandatory_move and delta_1 > self.thresh_nonmandatory:
+            # if this is a non mandatory move and the card is shit,
+            # just don't play it
             return
+        
         else:
+            # Check if you don't step on somebody else's foot
             dont_pile_idx_list = self.interaction(player)
             
             if not pile_idx1 in dont_pile_idx_list: #case 1: the pile of interest can be played
@@ -262,8 +309,11 @@ class tegame:
 
         self.print_stat_piles()
         return
-
-
+#
+# OUT OF CLASS
+#
+#Utility functions
+#
 def is_empty_lists(lst):
     return all(isinstance(x, list) and not x for x in lst) if lst else True
 
@@ -273,6 +323,9 @@ def is_list_of(a,b):
         ls.append(all(item in l for item in b))
     return any(ls)
 
+#
+#script version
+#
 if __name__ == "__main__":
     
     mygame = tegame.tegame()
