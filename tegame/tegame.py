@@ -176,7 +176,8 @@ class tegame:
             else:
                 if (len(combo) > 1) and not is_list_of(combo_list,combo) : combo_list.append(combo)
         #print(f"\nCombo list {combo_list}")
-        #return combo_list
+        self.hands[player] = hand
+        return combo_list
 
 
 
@@ -232,11 +233,13 @@ class tegame:
         combo_list = self.scan_combo(player)
 
         # if the playable card is part of a combo, play the cards in reverse order
+        #print(self.hands[player],combo_list)
         for combo in combo_list:
             if card_idx1 in combo:
-                print(f"\nCCCCCCCCCCOMBO: {" ".join(combo)}")
+                print(f"\nCCCCCCCCCCOMBO: {" ".join(str(_)for _ in combo)}")
+                print(combo[-1])
                 self.place_card(player,combo[-1],pile_idx1)
-                break
+                return
 
         if delta_1 == -10:
             # if the card is a -10 play it right away
