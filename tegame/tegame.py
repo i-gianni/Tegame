@@ -27,9 +27,13 @@ class tegame:
         
     def restart(self):
 
+        self.deck_empty = False
+        self.game_over = False
+        self.game_status = 0
+
         self.deck = deepcopy(self.original_deck)
         self.piles = deepcopy(self.original_piles)
-        self.n_mandatory_moves = 2 # this must be set here but it sucks like this, fix it somehow
+        self.n_mandatory_moves = 2 # this must be set here but it sucks like this, fix it somehow ## nah
 
         N = self.n_players
         m = self.n_inhand
@@ -42,7 +46,6 @@ class tegame:
         #self.hands = np.asarray(deck[:N*m]).reshape([N,m]).tolist()
         #deck = deck[N*m:]
         
-        self.deck_empty = False
 
     def print_stat(self):
 
@@ -80,31 +83,29 @@ class tegame:
     # we consider them at -100 so that they are increasing
     # in this way we simply change the sign for cards in hands
     
+        self.restart()
+
         print("###################")
         print(" STARTING NEW GAME")
         print("###################")
 
         N = self.n_players
-        self.game_over = False
-        self.game_status = 0
-
         while not self.game_over:
             for active_player in range(N):
                 self.play_turn(active_player)
 
         if self.game_status == 0:
-            print('You Won!')
+            print('\nYou Won! You did it, you son of a bitch!')
         else:
-            print('Game Over')
+            print('\nYou Lose, Game Over')
 
     # Wrapper to actual scan_hand, correctly unpacks hand and pile indexes
     def scan_hand(self,player,discards=[],mandatory_move=True):
 
-        delta,ind = self.scan_hand_(player,discards=discards,mandatory_move=mandatory_move)
+        delta, ind = self.scan_hand_(player,discards=discards,mandatory_move=mandatory_move)
+        
         if ind==[]:
 
-            if self.game_over and self.game_status != 0:
-                exit("Game Over")
             return delta,[None,None]
         
         elif len(ind)==2:
@@ -158,8 +159,9 @@ class tegame:
 
     def scan_combo(self,player):
         
-        hand = self.hands[player]
-        hand.sort()
+        hand = sorted(self.hands[player])
+        #sort_indeces = argsort(self.hands[player])
+        #sort_indeces_inv = inverse_permutation(sort_indeces)
 
         combo_list=[]
         for i, card_i in enumerate(hand):
@@ -175,8 +177,8 @@ class tegame:
                 if (len(combo) > 1) : combo_list.append(combo)
             else:
                 if (len(combo) > 1) and not is_list_of(combo_list,combo) : combo_list.append(combo)
-        #print(f"\nCombo list {combo_list}")
-        self.hands[player] = hand
+        
+        #self.hands[player] = hand
         return combo_list
 
 
@@ -196,7 +198,7 @@ class tegame:
         pile_idx_list = []
 
         for player in players:
-            delta,(card_idx,pile_idx)=self.scan_hand(player,mandatory_move=False)
+            _,(__,pile_idx)=self.scan_hand(player,mandatory_move=False)
             pile_idx_list.append(pile_idx)
 
         return list(set(pile_idx_list))
@@ -229,6 +231,8 @@ class tegame:
 
         
         delta_1,(card_idx1,pile_idx1)=self.scan_hand(player,mandatory_move=mandatory_move)
+        print(delta_1,card_idx1,pile_idx1)
+        if self.game_over: return
 
         combo_list = self.scan_combo(player)
 
@@ -236,14 +240,17 @@ class tegame:
         #print(self.hands[player],combo_list)
         for combo in combo_list:
             if card_idx1 in combo:
-                print(f"\nCCCCCCCCCCOMBO: {" ".join(str(_)for _ in combo)}")
-                print(combo[-1])
-                self.place_card(player,combo[-1],pile_idx1)
-                return
+                if not mandatory_move and delta_1 > self.thresh_nonmandatory:
+                    break
+                else:
+                    print(f"\nCCCCCCCCCCOMBO: {" ".join(str(_)for _ in combo)}")
+                    for card in reversed(combo):
+                        self.place_card(player,card,pile_idx1)
+                    return
 
         if delta_1 == -10:
             # if the card is a -10 play it right away
-            print(f"\nmmmh -10, mmh saucy")
+            print(f"\nMMHH SAUCY -10")
             self.place_card(player,card_idx1,pile_idx1)
 
         elif not mandatory_move and delta_1 > self.thresh_nonmandatory:
@@ -292,6 +299,7 @@ class tegame:
         for _ in range(self.n_mandatory_moves):
             if self.verbose: print(f"\nMandatory move #{_}")
             self.play_card(player)
+            if self.game_over: return
 
         n_played = self.n_mandatory_moves
         while True:
@@ -325,6 +333,14 @@ def is_list_of(a,b):
     for l in a:
         ls.append(all(item in l for item in b))
     return any(ls)
+
+def argsort(seq):
+    """Return the indices that would sort the sequence."""
+    return [i for i, _ in sorted(enumerate(seq), key=lambda x: x[1])]
+
+def inverse_permutation(indices):
+    """Return the inverse permutation of the given indices."""
+    return [idx for idx, _ in sorted(enumerate(indices), key=lambda x: x[1])]
 
 #
 #script version
