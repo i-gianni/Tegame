@@ -37,6 +37,7 @@ class tegame:
         self.hands=[]
         for _ in range(N):
             self.hands.append([i for i in self.deck[:m]])
+            self.hands[-1].sort()
             self.deck = self.deck[m:]
 
         #self.hands = np.asarray(deck[:N*m]).reshape([N,m]).tolist()
@@ -80,6 +81,8 @@ class tegame:
     # we consider them at -100 so that they are increasing
     # in this way we simply change the sign for cards in hands
     
+        self.restart()
+
         print("###################")
         print(" STARTING NEW GAME")
         print("###################")
@@ -159,7 +162,7 @@ class tegame:
     def scan_combo(self,player):
         
         hand = self.hands[player]
-        hand.sort()
+        #hand.sort()
 
         combo_list=[]
         for i, card_i in enumerate(hand):
@@ -236,14 +239,16 @@ class tegame:
         #print(self.hands[player],combo_list)
         for combo in combo_list:
             if card_idx1 in combo:
-                print(f"\nCCCCCCCCCCOMBO: {" ".join(str(_)for _ in combo)}")
-                print(combo[-1])
-                self.place_card(player,combo[-1],pile_idx1)
+                combo_cards = [self.hands[player][card] for card in combo]
+                if (delta_1 != -10): print(f"\nCCCCCCCCCCOMBO: {" ".join(str(_)for _ in combo_cards)}")
+                if pile_idx1 > 1:
+                    self.place_card(player,combo[0],pile_idx1)
+                else:
+                    self.place_card(player,combo[-1],pile_idx1)
                 return
 
         if delta_1 == -10:
             # if the card is a -10 play it right away
-            print(f"\nmmmh -10, mmh saucy")
             self.place_card(player,card_idx1,pile_idx1)
 
         elif not mandatory_move and delta_1 > self.thresh_nonmandatory:
@@ -287,7 +292,9 @@ class tegame:
         print("\n=======================")
         print(f"New turn for player {player}")
         print("=======================")
+        self.hands[player].sort()
         self.print_stat_hands()
+
 
         for _ in range(self.n_mandatory_moves):
             if self.verbose: print(f"\nMandatory move #{_}")
