@@ -230,16 +230,16 @@ class tegame:
         
         delta_1,(card_idx1,pile_idx1)=self.scan_hand(player,mandatory_move=mandatory_move)
 
-        combo_list = self.scan_combo(player)
+        #combo_list = self.scan_combo(player)
 
         # if the playable card is part of a combo, play the cards in reverse order
         #print(self.hands[player],combo_list)
-        for combo in combo_list:
-            if card_idx1 in combo:
-                print(f"\nCCCCCCCCCCOMBO: {" ".join(str(_)for _ in combo)}")
-                print(combo[-1])
-                self.place_card(player,combo[-1],pile_idx1)
-                return
+        #for combo in combo_list:
+        #    if card_idx1 in combo:
+        #        print(f"\nCCCCCCCCCCOMBO: {" ".join(str(_)for _ in combo)}")
+        #        print(combo[-1])
+        #        self.place_card(player,combo[-1],pile_idx1)
+        #        return
 
         if delta_1 == -10:
             # if the card is a -10 play it right away
