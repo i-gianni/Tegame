@@ -177,7 +177,6 @@ class tegame:
             else:
                 if (len(combo) > 1) and not is_list_of(combo_list,combo) : combo_list.append(combo)
         
-        #self.hands[player] = hand
         return combo_list
 
 
@@ -230,7 +229,6 @@ class tegame:
 
         
         delta_1,(card_idx1,pile_idx1)=self.scan_hand(player,mandatory_move=mandatory_move)
-        print(delta_1,card_idx1,pile_idx1)
         if self.game_over: return
 
         combo_list = self.scan_combo(player)
