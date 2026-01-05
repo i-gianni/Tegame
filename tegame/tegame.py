@@ -90,6 +90,18 @@ class Tegame:
             self.hands[-1].sort()
             self.deck = self.deck[m:]
 
+    def get_state(self):
+        return {
+            "hands": self.hands,
+            "piles": self.piles,
+            "deck": self.deck,
+        }
+
+    def set_state(self, state):
+        self.hands = state["hands"]
+        self.piles = state["piles"]
+        self.deck = state["deck"]
+
 
     def print_stat(self):
 
@@ -154,7 +166,7 @@ class Tegame:
         """
         
         # Reset the game state
-        self.restart()
+        #self.restart()
     
         # Print initial message if verbosity >= 2
         if self.verb_lvl >= 2:
@@ -198,9 +210,6 @@ class Tegame:
         
         else:
             raise ValueError("Output of scan_hand not recognized")
-
-
-
 
     # Look for the best card to play from current player's hand onto the field
     # return the card, the pile and the damage done by the possible move
