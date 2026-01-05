@@ -1,0 +1,3 @@
+@echo off
+python ../src/main.py --players 2 --verb 3 --thresh-secondchoice 6 --thresh-nonmandatory 3
+pause
