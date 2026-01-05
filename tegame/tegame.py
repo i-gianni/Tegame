@@ -1,5 +1,4 @@
 from random import shuffle
-from sys import exit
 from copy import deepcopy
 
 class Tegame:
@@ -75,7 +74,7 @@ class Tegame:
 
         self.deck_empty = False
         self.game_over = False
-        self.game_ongoing =  True #
+        self.game_ongoing =  True
 
         self.deck = deepcopy(self.original_deck)
         self.piles = deepcopy(self.original_piles)
@@ -183,9 +182,9 @@ class Tegame:
     
         # Print final result if verbosity > 0
         if self.verb_lvl > 0 and not self.game_over:
-            print('\nYou Won! You did it, you son of a bitch!')
+            print("\nWow, you've won. Must’ve been pure luck… or the cards felt sorry for you!\n")
         elif self.verb_lvl > 0 and self.game_over:
-            print('\nYou Lose, Game Over')
+            print('\nYou Lose, Game Over\n')
     
         # Determine if the game was won
         game_won = not self.game_over
@@ -430,11 +429,3 @@ def inverse_permutation(indices):
     """Return the inverse permutation of the given indices."""
     return [idx for idx, _ in sorted(enumerate(indices), key=lambda x: x[1])]
 
-#
-#script version
-#
-if __name__ == "__main__":
-    
-    mygame = tegame.tegame()
-#    mygame.restart()
-    mygame.run_game()
